@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html xmlns:th="http:/www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>상품 목록</title>
+<style type="text/css">
+	.bold {
+		font-weight: 700;
+	}
+</style>
+<link href="/css/tailwind.css" rel="stylesheet">
+</head>
+<body class="bg-gray-300 min-h-screen">
+	<div th:replace="common/navbar :: navbar"></div>
+	<div class="mt-[80px] mb-[30px] mx-auto w-[1200px] bg-white rounded-xl shadow-xl p-10">
+		<div class="my-8 w-full relative">
+			<form method="get" action="/product">
+				<button type="button" class="text-xl bg-transparent cursor-pointer hover:bg-gray-500 text-gray-700 font-semibold hover:text-white py-2 px-4 border border-gray-500 hover:border-transparent rounded"
+					onclick="location.href='/product/add'">상품 등록</button>
+				&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 
+				<input type="text" placeholder="상품 번호, 상품명을 입력해주세요."
+					 name="search" th:value="${search}"	id="search" class="rounded text-xl border border-gray-400 px-4 py-2 w-[400px]"> 
+				<input type="submit"  value="조회" class="text-xl bg-transparent cursor-pointer hover:bg-gray-500 text-gray-700 font-semibold hover:text-white py-2 px-4 border border-gray-500 hover:border-transparent rounded" >
+				<select class="border absolute right-4 border-gray-400 rounded text-xl px-2 py-1" name="category" id="category">
+					<option value="">전체</option>
+					<option th:each="c : ${category}" th:value="${c.categoryNo}"th:text="${c.categoryName}"  th:selected="${c.categoryNo == selectedCategory}" ></option>
+				</select>
+			</form>
+		</div>
+		<table class="w-full">
+			<thead>
+				<tr class="bg-gray-200">
+					<th class="px-4 py-2 text-left text-xl">상품 번호</th>
+					<th class="px-4 py-2 text-left text-xl " >상품명</th>
+					<th class="px-4 py-2 text-left text-xl">단가</th>
+					<th class="px-4 py-2 text-left text-xl">분류</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr th:each="product : ${products}" class="border-b border-gray-400 even:bg-gray-200">
+					<td class="px-4 py-2 text-left text-xl" th:text="${product.productNo}"></td>
+					<td class="px-4 py-2 text-left text-xl cursor-pointer" th:data-value="${product.productNo}" th:text="${product.productName}"	onclick="openModal(this)"></td>
+					<td class="px-4 py-2 text-left text-xl" th:text="${product.productPrice}"></td>
+					<td class="px-4 py-2 text-left text-xl" th:text="${product.category.categoryName}"></td>
+				</tr>
+			</tbody>
+		</table>
+		<div id="pagination" class="w-3/5 justify-center mx-auto flex space-x-2 mt-4">
+			<button th:value="${1}" onclick="changePage(this);" type="button" class="text-xl cursor-pointer flex-grow"><<</button>
+			<button type="button" onclick="changePage(this);"	th:disabled="${products.first}" th:value="${paging.currentPage - 1}" class="text-xl cursor-pointer flex-grow">이전</button>
+			<span	th:each="page : ${#numbers.sequence(paging.startPage, paging.endPage)}" class="flex-grow">
+				<button type="button" th:value="${page}" th:text="${page}"
+					th:disabled="${paging.currentPage eq page}"
+					th:classappend="${paging.currentPage eq page} ? 'bold' : ''"
+					onclick="changePage(this);"
+					class="text-xl cursor-pointer">
+				</button>
+			</span>
+			<button type="button" onclick="changePage(this);" class="text-xl cursor-pointer flex-grow"
+				th:disabled="${products.last}" th:value="${paging.currentPage + 1}">다음
+			</button>
+			<button type="button" class="text-xl cursor-pointer flex-grow" th:value="${products.totalPages}" onclick="changePage(this)">>></button>
+		</div>
+		<!-- 상품 정보 모달창 -->
+		<div id="modal" class="hidden fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[750px] bg-white shadow-lg z-[1000] text-[20px] font-bold py-8">
+			<button type="button" onclick="closeModal()" class="absolute right-4">
+				<img width="60px" height="auto" class="cursor-pointer" alt="closeButton" src="/img/closebutton.png">
+			</button>
+			<div>
+				<label class="px-4 py-2 text-left text-xl">상품번호 : </label> <input id="modal_productNo" disabled="disabled"	class="text-xl px-2 py-1">
+			</div>
+			<div>
+				<label class="px-4 py-2 text-left text-xl">상품명 : </label> <input id="modal_productName" disabled="disabled"	class="text-xl px-2 py-1">
+			</div>
+			<div>
+				<label class="px-4 py-2 text-left text-xl">단가 : </label> <input id="modal_productPrice" disabled="disabled"	class="text-xl px-2 py-1">
+			</div>
+			<div>
+				<span class="px-4 py-2 text-left text-xl">사진 : </span> <img class="inline"  width="400px" height="auto" alt="productImgUrl" src="" id="modal_productImgUrl">
+			</div>
+			<div >
+				<label class="px-4 py-2 text-left text-xl">분류 : </label> <input id="modal_categoryName"	disabled="disabled" class="text-xl px-2 py-1">
+			</div>
+			<!-- 사용자에겐 보이지 않지만, modaledit에서 사용.. -->
+			<div class="hidden">
+				<label class="px-4 py-2 text-left text-xl"> 단위 : </label> <input id="modal_productUnit"	disabled="disabled">
+			</div>
+			<div class="ml-4">
+				<button type="button" onclick="openModalDelete()" class="mt-10 text-xl bg-transparent hover:bg-red-500 text-gray-700 font-semibold hover:text-white py-2 px-4 border border-red-500 hover:border-transparent rounded">상품 삭제</button>
+				<button type="button" onclick="openModalEdit()" class="mt-10 mx-4 text-xl bg-transparent hover:bg-gray-500 text-gray-700 font-semibold hover:text-white py-2 px-4 border border-gray-500 hover:border-transparent rounded">상품 수정</button>
+			</div>
+		</div>
+		
+		
+		<!-- 상품 수정 모달창 -->
+		<div id="modalEdit" class="hidden fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[750px] bg-white shadow-lg z-[1000] text-[20px] font-bold py-8">
+			<form action="/product/edit" method="post" autocomplete="off" id="productEdit" enctype="multipart/form-data"> 
+				<button type="button" onclick="closeModal()" class="absolute right-4">
+					<img width="60px" height="auto" class="cursor-pointer" alt="closeButton" src="/img/closebutton.png">
+				</button>
+				<div>
+					<label class="px-4 py-2 text-left text-xl">상품번호 : </label> <input id="modalEdit_productNo" class="text-xl px-2 py-1" disabled="disabled">
+					<input id="modalEdit_productNo_hidden" name="productNo" hidden="">
+				</div>
+				<div>
+					<label class="px-4 py-2 text-left text-xl">상품명 : </label> <input id="modalEdit_productName" name="productName" 	class="text-xl px-2 py-1 rounded border border-gray-400" required="required">
+				</div>
+				<div>
+					<label class="px-4 py-2 text-left text-xl">단가 : </label> <input id="modalEdit_productPrice" type="number" min="0" name="productPrice"	class="text-xl px-2 py-1 rounded border border-gray-400" required="required">
+				</div>
+				<div>
+					<label class="px-4 py-2 text-left text-xl">단위 : </label> <input id="modalEdit_productUnit" name="productUnit"	class="text-xl px-2 py-1 rounded border border-gray-400">
+				</div>
+				<div>
+					<span class="px-4 py-2 text-left text-xl">사진 : </span> <img class="inline"  width="400px" height="auto" alt="productImgUrl" src="" id="modalEdit_productImgUrl">
+					<input type="text" hidden="hidden" name="productImgUrl" id="productImgUrl">
+					<input type="file" id="productImgFile" accept="image/*" hidden="hidden" > 
+					<button type="button" onclick="document.getElementById('productImgFile').click()" class="text-xl bg-transparent hover:bg-gray-500 text-gray-700 font-semibold hover:text-white py-2 px-4 border border-gray-500 hover:border-transparent rounded" >상품 사진 수정</button>
+					<div id="uploadStatus"></div>
+				</div>
+				<div>
+					<label class="px-4 py-2 text-left text-xl">분류 : </label> 
+					<select class="px-4 py-2 text-left text-xl"  name="categoryNo" required="required" id="modalEdit_categoryName">
+						<option th:each="c : ${category}" th:value="${c.categoryNo}"th:text="${c.categoryName}" ></option>
+					</select>
+				</div>
+				<div class="ml-4">
+					<button onclick="closeModalEdit()" type="button" class="mt-10 mx-4 text-xl bg-transparent hover:bg-gray-500 text-gray-700 font-semibold hover:text-white py-2 px-4 border border-gray-500 hover:border-transparent rounded">취소</button>
+					<button type="submit" class="mt-10 mx-4 text-xl bg-transparent hover:bg-gray-500 text-gray-700 font-semibold hover:text-white py-2 px-4 border border-gray-500 hover:border-transparent rounded">상품 수정</button>
+				</div>
+			</form>
+		</div>
+		
+		<!-- 상품 삭제 모달창 -->
+		<div id="modalDelete" class="hidden fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[750px] bg-white shadow-lg z-[1000] text-[20px] font-bold py-8">
+			<button type="button" onclick="closeModal()" class="absolute right-4">
+				<img width="60px" height="auto" class="cursor-pointer" alt="closeButton" src="/img/closebutton.png">
+			</button>
+			<img alt="alert-icon" src="/img/alert-icon.png" width="100px" height="auto" class="mx-auto">
+			<div class="text-center text-xl my-2">
+				해당 상품을 정말 삭제하시겠습니까?
+			</div>
+			<img alt="deleteProductImg" src="" id="deleteProductImgUrl" width="400px" height="auto" class="mx-auto">
+			<div id="deleteProductName" class="px-4 py-2 text-center text-xl "></div>
+			<form action="product/delete" method="post">
+				<input type="text" id="deleteProductNo" hidden="" name="productNo">
+				<div class="flex justify-center mt-10" >
+					<button onclick="closeModalEdit()" type="button" class="mx-8 text-xl bg-transparent hover:bg-gray-500 text-gray-700 font-semibold hover:text-white py-2 px-4 border border-gray-500 hover:border-transparent rounded">아니오</button>
+					<button type="submit" class=" mx-8 text-xl bg-transparent hover:bg-red-500 text-gray-700 font-semibold hover:text-white py-2 px-4 border border-red-500 hover:border-transparent rounded">예, 삭제하겠습니다.</button>
+				</div>
+			</form>
+		</div>
+		
+		<div id="modalBackground" class="hidden fixed inset-0 bg-black opacity-75 z-[999]"></div>
+	</div>
+	<script type="text/javascript">
+	
+	let modal = document.getElementById('modal');
+	let modalBackground = document.getElementById('modalBackground');
+	let modalEdit = document.getElementById('modalEdit');
+	let modalDelete = document.getElementById('modalDelete');
+	
+	function changePage(element) {
+		let search = document.getElementById('search').value || '';
+		let category = document.getElementById('category').value || '';
+		let page = element.value
+	
+		window.location.href = `?page=${page}&search=${encodeURIComponent(search)}&category=${category}`
+	}
+	
+	function openModal(element) {
+		let productNo = element.getAttribute('data-value');
+		
+		fetch(`/product/${productNo}`)
+			.then(response => response.json())
+			.then(data => {
+				document.getElementById('modal_productNo').value = data.productNo;
+				document.getElementById('modal_productName').value = data.productName;
+				document.getElementById('modal_productPrice').value = data.productPrice;
+				document.getElementById('modal_productImgUrl').src = data.productImgUrl;
+				document.getElementById('modal_categoryName').value = data.category.categoryName;
+				document.getElementById('modal_productUnit').value = data.productUnit;
+			})
+		
+		modal.style.display = 'block';
+		modalBackground.style.display = 'block';
+		modalEdit.style.display = 'none';
+		modalDelete.style.display = 'none';
+	}
+	
+	function openModalDelete() {
+		document.getElementById('deleteProductNo').value = document.getElementById('modal_productNo').value;
+		document.getElementById('deleteProductName').innerText = document.getElementById('modal_productName').value;
+		document.getElementById('deleteProductImgUrl').src = document.getElementById('modal_productImgUrl').src;
+		
+		modal.style.display = 'none';
+		modalBackground.style.display = 'block';
+		modalEdit.style.display = 'none';
+		modalDelete.style.display = 'block';
+	}
+	
+	function closeModal() {
+		modal.style.display = 'none';
+		modalBackground.style.display = 'none';
+		modalEdit.style.display = 'none';
+		modalDelete.style.display = 'none';
+	}
+	
+	function closeModalEdit() {
+		modal.style.display = 'block';
+		modalBackground.style.display = 'block';
+		modalEdit.style.display = 'none';
+		modalDelete.style.display = 'none';
+	}
+		
+	
+	function openModalEdit() {
+		document.getElementById('modalEdit_productNo').value = document.getElementById('modal_productNo').value;
+		document.getElementById('modalEdit_productNo_hidden').value = document.getElementById('modal_productNo').value;
+		document.getElementById('modalEdit_productName').value = document.getElementById('modal_productName').value;
+		document.getElementById('modalEdit_productPrice').value = document.getElementById('modal_productPrice').value;
+		document.getElementById('modalEdit_productUnit').value = document.getElementById('modal_productUnit').value;
+		document.getElementById('modalEdit_productImgUrl').src = document.getElementById('modal_productImgUrl').src;
+		
+		const productNo = document.getElementById('modal_productNo').value;
+		fetch(`/product/${productNo}`)
+			.then(response => response.json())
+			.then(data => {
+				document.getElementById('modalEdit_categoryName').value = data.category.categoryNo;
+				
+				modal.style.display = 'none';
+				modalBackground.style.display = 'block';
+				modalEdit.style.display = 'block';
+				modalDelete.style.display = 'none';
+			});
+		
+	}
+	
+	// 이미지 url 생성 api
+	document.getElementById('productEdit').addEventListener('submit', async function(event) {
+		event.preventDefault();
+		
+		const imageFile = document.getElementById('productImgFile').files[0];
+		const form = event.target;
+		const uploadStatusDiv = document.getElementById('uploadStatus');
+		const unit = document.getElementById('modalEdit_productUnit');
+		
+		// 이미지 파일이 없을시, 기존 url로 대체.
+		if(!imageFile) {
+			document.getElementById('productImgUrl').value = document.getElementById('modal_productImgUrl').src;
+			// 단위 미입력시 '개'로 지정
+			if (!unit.value.trim()) {
+				unit.value = '개';
+			}
+			
+			form.submit();
+			return;
+		}
+		
+		
+		
+		const API_KEY = '5d36b22de008a44ce61aa96a0addf052';
+		const formData = new FormData();
+		formData.append('image', imageFile);
+		
+		try {
+				const response = await fetch('https://api.imgbb.com/1/upload?key=' + API_KEY, {
+				method: 'POST',
+				body: formData
+			});
+			
+			const result = await response.json();
+			
+			if (result.success) {
+				
+				// 단위 미입력시 '개'로 지정
+				if (!unit.value.trim()) {
+					unit.value = '개';
+				}
+				
+				const imageUrl = result.data.url;
+				document.getElementById('productImgUrl').value = imageUrl;
+				form.submit();
+			} else {
+					uploadStatusDiv.innerText = '이미지 업로드를 실패하였습니다.';
+			}
+		} catch (error) {
+				console.error(error);
+				uploadStatusDiv.innerText = '오류 발생 : 이미지 업로드 실패.';
+		}
+	});
+	
+	</script>
+</body>
+</html>

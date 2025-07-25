@@ -1,0 +1,52 @@
+
+
+	<div th:fragment="productModalContent">
+		<div class="my-8 w-full relative">
+			<form method="get" action="/product/modal">
+				&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 
+				<input type="text" placeholder="상품 번호, 상품명을 입력해주세요."
+					 name="search" th:value="${search}"	id="search" class="rounded text-xl border border-gray-400 px-4 py-2 w-[400px]"> 
+				<input type="button" onclick="productModalSubmit(event)"  value="조회" class="text-xl bg-transparent cursor-pointer hover:bg-gray-500 text-gray-700 font-semibold hover:text-white py-2 px-4 border border-gray-500 hover:border-transparent rounded" >
+				<select class="border absolute right-4 border-gray-400 rounded text-xl px-2 py-1" name="category" id="category">
+					<option value="">전체</option>
+					<option th:each="c : ${category}" th:value="${c.categoryNo}"th:text="${c.categoryName}"  th:selected="${c.categoryNo == selectedCategory}" ></option>
+				</select>
+			</form>
+		</div>
+		<table class="w-full">
+			<thead>
+				<tr class="bg-gray-200">
+					<th class="px-4 py-2 text-left text-xl">상품 번호</th>
+					<th class="px-4 py-2 text-left text-xl " >상품명</th>
+					<th class="px-4 py-2 text-left text-xl">단가</th>
+					<th class="px-4 py-2 text-left text-xl">분류</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr th:each="product : ${products}" class="border-b border-gray-400 even:bg-gray-200">
+					<td class="px-4 py-2 text-left text-xl" th:text="${product.productNo}"></td>
+					<td class="px-4 py-2 text-left text-xl cursor-pointer" th:data-value="${product.productNo}" th:text="${product.productName}"	onclick="selectProduct(this)" ></td>
+					<td class="px-4 py-2 text-left text-xl" th:text="${product.productPrice}"></td>
+					<td class="px-4 py-2 text-left text-xl" th:text="${product.category.categoryName}"></td>
+				</tr>
+			</tbody>
+		</table>
+		<div id="pagination" class="w-3/5 justify-center mx-auto flex space-x-2 mt-4">
+			<button th:value="${1}" onclick="changePage(this);" type="button" class="text-xl cursor-pointer flex-grow"><<</button>
+			<button type="button" onclick="changePage(this);"	th:disabled="${products.first}" th:value="${paging.currentPage - 1}" class="text-xl cursor-pointer flex-grow">이전</button>
+			<span	th:each="page : ${#numbers.sequence(paging.startPage, paging.endPage)}" class="flex-grow">
+				<button type="button" th:value="${page}" th:text="${page}"
+					th:disabled="${paging.currentPage eq page}"
+					th:classappend="${paging.currentPage eq page} ? 'bold' : ''"
+					onclick="changePage(this);"
+					class="text-xl cursor-pointer">
+				</button>
+			</span>
+			<button type="button" onclick="changePage(this);" class="text-xl cursor-pointer flex-grow"
+				th:disabled="${products.last}" th:value="${paging.currentPage + 1}">다음
+			</button>
+			<button type="button" class="text-xl cursor-pointer flex-grow" th:value="${products.totalPages}" onclick="changePage(this)">>></button>
+		</div>
+	</div>
+		
+		

@@ -1,0 +1,28 @@
+package yhj.fs.dto;
+
+import java.time.LocalDate;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import yhj.fs.entity.Product;
+import yhj.fs.entity.Storage;
+
+@Getter
+@Setter
+@ToString
+@NoArgsConstructor
+@AllArgsConstructor
+public class StockOutDTO {
+
+	private int stockOutNo;
+	private int productNo;
+	private Product product;
+	private int storageNo;
+	private Storage storage;
+	private int stockOutQuantity;
+	private LocalDate stockOutDate;
+	private String customerName;
+}

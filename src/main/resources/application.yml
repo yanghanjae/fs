@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: fs
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://104.197.50.48/fs
+    username: root
+    password: P"GIzbQK`7:}kYgh
+
+  devtools:
+    restart:
+      enabled: true
+server:
+  port: 8080
+

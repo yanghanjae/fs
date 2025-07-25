@@ -1,0 +1,42 @@
+<!-- 상단 nav-->
+
+<div th:fragment="navbar">
+	<th:block th:if="${session.admin == null}">
+      <script>
+        alert('인가된 권한이 없습니다. 로그인 후 다시 시도해주세요.');
+        location.href = '/';
+      </script>
+   </th:block>
+	<nav class="block w-full px-4 py-8 mx-auto bg-white shadow-md">
+		<div class="container flex flex-wrap items-center justify-between mx-auto text-slate-800">
+			<a href="#" class="mr-4 block cursor-pointer py-1.5 text-base text-slate-800 font-semibold">
+				Full Storage 
+			</a>
+			<div class="block ml-40">
+				<ul	class="flex flex-row items-center gap-8">
+					<li class="flex items-center p-2 text-xl font-semibold gap-x-3 text-slate-600">
+						<a href="/product" class="flex items-center"> 상품 관리 </a>
+					</li>
+					<li class="flex items-center p-2 text-xl font-semibold gap-x-3 text-slate-600">
+						<a href="/stock" class="flex items-center"> 재고 목록 </a>
+					</li>
+					<li class="flex items-center p-2 text-xl font-semibold gap-x-3 text-slate-600">
+						<a href="/storage" class="flex items-center"> 창고 관리 </a>
+					</li>
+					<li class="flex items-center p-2 text-xl font-semibold gap-x-3 text-slate-600">
+						<a href="/stockIn" class="flex items-center"> 입고 관리 </a>
+					</li>
+					<li class="flex items-center p-2 text-xl font-semibold gap-x-3 text-slate-600">
+						<a href="/stockOut" class="flex items-center"> 출고 관리 </a>
+					</li>
+					
+				</ul>
+			</div>
+			<form action="/logout" method="post" class="ml-auto">
+			  <button type="submit" class="px-4 py-2 text-xl font-semibold text-gray-700 bg-transparent rounded-md shadow hover:bg-gray-500 transition hover:text-white">
+			    로그아웃
+			  </button>
+			</form>
+		</div>
+	</nav>
+</div>
